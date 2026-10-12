@@ -1,13 +1,20 @@
-# 12-bit constant-weight code decoder on a Booth-style datapath: lint, simulation, formal proof, synthesis.
-# Tools: Verilator >= 5, Icarus Verilog >= 12, Yosys >= 0.30 (with yosys-abc).
+# 12-bit constant-weight code decoder on a Booth-style datapath: lint, simulation, formal checks, synthesis.
+# Toolchain: Icarus Verilog, Verilator, Yosys + yosys-abc (exact versions in scripts/install-tools.sh).
 
 RTL := rtl/ecc12_decoder.sv
 TB  := tb/tb_ecc12.sv
 RUN := bash scripts/run_sim.sh
 
-.PHONY: all lint sim sim-icarus sim-verilator formal synth clean
+.PHONY: all ci full summary lint sim sim-icarus sim-verilator formal synth clean
 
 all: lint sim
+
+# CI entry points (.github/workflows): everything here runs in a few minutes, so both suites are the same
+ci: lint sim formal synth summary
+full: ci
+
+summary:
+	@bash scripts/summary.sh > /dev/null && echo "wrote build/SUMMARY.md"
 
 lint:
 	verilator --lint-only -Wall --top-module ecc12_decoder $(RTL)
